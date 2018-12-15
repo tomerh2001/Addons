@@ -1,2 +1,0 @@
-# Addons
-Javascript addons libary
