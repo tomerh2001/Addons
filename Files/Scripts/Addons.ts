@@ -4415,6 +4415,14 @@ function isIOS() {
     return x1 || x2;
 }
 
+function enumKeys(items) {
+    return Object.keys(items).filter(k => typeof items[k as any] === "number");
+}
+function enumValues(items) {
+    const keys = enumKeys(items)
+    return keys.map(k => items[k as any])
+}
+
 const Clipboard = (function (window, document, navigator) {
     var textArea,
         copy;
