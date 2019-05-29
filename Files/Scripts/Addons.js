@@ -5,18 +5,17 @@
     This is a part of a personal libary created by Tomer Horowitz,
     @ All rights reserved to and for Tomer Horowitz the creator of the libary
 */
-var UID;
-var clearConsoleOnReady = false;
-var clearConsoleOnReadyDelay = 500;
-var customRequestSettings;
-var customRequestError;
-var isMobile = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));
+let UID;
+let clearConsoleOnReady = false;
+let clearConsoleOnReadyDelay = 500;
+let customRequestSettings;
+let customRequestError;
+let isMobile = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase()));
 //- Declare original functions
 var originalValFunction = $.fn.val;
 var originalAttrFunction = $.fn.attr;
 //- Initializations For The Extentions
 $(function () {
-    var _this = this;
     //- String
     String.prototype.toNumber = function () {
         var val = this;
@@ -28,7 +27,7 @@ $(function () {
     };
     String.prototype.foreach = function (f, amount) {
         if (amount == null || amount <= 0) {
-            if (typeof (f) == typeof (function (char, index) { return String; })) {
+            if (typeof (f) == typeof ((char, index) => String)) {
                 var Result = "";
                 for (var i = 0; i < this.length; i++)
                     Result += f(this.charAt(i), i);
@@ -39,10 +38,10 @@ $(function () {
                     f(this.charAt(i), i);
         }
         else {
-            if (typeof (f) == typeof (function (char, index) { return String; })) {
+            if (typeof (f) == typeof ((char, index) => String)) {
                 var Result = "";
                 var CurrentResult = "";
-                this.foreach(function (c, i) {
+                this.foreach((c, i) => {
                     if (i % amount == 0) {
                         Result += f(CurrentResult, i);
                         CurrentResult = "";
@@ -54,7 +53,7 @@ $(function () {
             }
             else {
                 var CurrentResult = "";
-                this.foreach(function (c, i) {
+                this.foreach((c, i) => {
                     if (i % amount == 0) {
                         f(CurrentResult, i);
                         CurrentResult = "";
@@ -68,7 +67,7 @@ $(function () {
     String.prototype.remove = function (selector) {
         var Result = "";
         if (typeof (selector) == typeof (String))
-            return selector.length > 0 ? this.foreach(function (c, i) { return c != selector ? c : null; }, selector.length) : selector;
+            return selector.length > 0 ? this.foreach((c, i) => { return c != selector ? c : null; }, selector.length) : selector;
         //else if (typeof (selector) == typeof ((i) => String))
         //return selector.length > 0 ? this.foreach((c, i) => selector(c), selector.length) : selector;
         //else if (typeof (selector) == typeof ((i) => Boolean))
@@ -126,7 +125,7 @@ $(function () {
         value = value.replaceAll(/^ *(\S.*\S) *$/g, '$1');
         //- Split inner sentences
         if (upperSpace) {
-            if (value.all(function (i) { return /[A-Z]/.test(i); }))
+            if (value.all(i => /[A-Z]/.test(i)))
                 value = value.toLowerCase();
             value = value.replaceAll(/([A-Z][^A-Z]*)/g, ' $1');
         }
@@ -139,7 +138,7 @@ $(function () {
     String.prototype.all = function (pred) {
         //- Parse predicate
         if ($.type(pred) != 'function')
-            pred = function (i) { return i == pred; };
+            pred = i => i == pred;
         for (var i = 0; i < this.length; i++)
             if (!pred(this[i]))
                 return false;
@@ -177,11 +176,7 @@ $(function () {
         return Math.round(this);
     };
     //- Array
-    Array.prototype.contains = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    Array.prototype.contains = function (...args) {
         var tar = this;
         if (args.length == 1) {
             var o = args[0];
@@ -211,10 +206,10 @@ $(function () {
     };
     Array.prototype.select = function (selector) {
         var result = [];
-        this.forEach(function (v, i) { return result.push(selector(v, i)); });
+        this.forEach((v, i) => result.push(selector(v, i)));
         return result;
     };
-    Array.prototype.to = function (action) { return action(_this); };
+    Array.prototype.to = (action) => action(this);
     Array.prototype.parse = function (separator, fn) {
         var s = '';
         this.forEach(function (v, i, a) {
@@ -237,7 +232,7 @@ $(function () {
         return val;
     };
     Array.prototype.toLowerCase = function () {
-        return this.select(function (i) { return i != null ? i.toString().toLowerCase() : null; });
+        return this.select(i => i != null ? i.toString().toLowerCase() : null);
     };
     Array.prototype.any = function (fn) {
         for (var i = 0; i < this.length; i++)
@@ -246,22 +241,18 @@ $(function () {
         return false;
     };
     //- JQuery
-    jQuery.prototype.finishCss = function (callback, transitions, all) {
-        if (transitions === void 0) { transitions = true; }
-        if (all === void 0) { all = false; }
+    jQuery.prototype.finishCss = function (callback, transitions = true, all = false) {
         var events = 'animationend';
         if (transitions)
             events += ' transitionend';
         if (all)
             events += ' webkitAnimationEnd oanimationend MSAnimationEnd' + (transitions ? ' webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd' : '');
         //- Create local variables
-        var handler = function (ev) { return callback.apply(ev.currentTarget, [ev]); };
+        var handler = ev => callback.apply(ev.currentTarget, [ev]);
         //- Bind events
         return $(this).one(events, handler).data('finish-css-handler', handler);
     };
-    jQuery.prototype.offFinishCss = function (transitions, all) {
-        if (transitions === void 0) { transitions = true; }
-        if (all === void 0) { all = false; }
+    jQuery.prototype.offFinishCss = function (transitions = true, all = false) {
         var events = 'animationend';
         if (transitions)
             events += ' transitionend';
@@ -271,8 +262,8 @@ $(function () {
         var handler = $(this).data('finish-css-handler');
         //- Unbind events
         events = events.split(' ');
-        return $(this).each(function (i, e) {
-            events.forEach(function (n) { return $(e).off(n, handler); });
+        return $(this).each((i, e) => {
+            events.forEach(n => $(e).off(n, handler));
         });
     };
     jQuery.prototype.replaceClass = function (oldClass, newClass) {
@@ -282,7 +273,7 @@ $(function () {
         var tar = $(this);
         if ($.isArray(name)) {
             var names = name;
-            names.forEach(function (name) {
+            names.forEach(name => {
                 var val = tar.css(name);
                 tar = tar.data('data-css-' + name, val);
             });
@@ -310,11 +301,7 @@ $(function () {
         //- Change element tag
         else { }
     };
-    jQuery.prototype.scale = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.scale = function (...args) {
         var tar = $(this), sc, val, from, to, fn, duration, axis = '', obj = {};
         if ($.isFunction(args[1])) {
             val = args[0];
@@ -371,11 +358,7 @@ $(function () {
     jQuery.prototype.reverse = function () {
         return $($(this).get().reverse());
     };
-    jQuery.prototype.iter = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.iter = function (...args) {
         var fn = args[0], delay = args[1], delta;
         if (args.length == 3)
             delta = args[2];
@@ -396,24 +379,24 @@ $(function () {
             return setTimeout(callback, 1000 / 60);
         };
         //- Bind events
-        window.addEventListener('resize', function () { return updateScroll(); }, true);
+        window.addEventListener('resize', () => updateScroll(), true);
         window.addEventListener('scroll', onScroll, true);
         updateScroll();
         function getOffset() {
-            var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+            const h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
             if (offset) {
-                var num_1 = +(offset.toString().replace('%', '')) / 100;
-                var fraction = Math.max(0, Math.min(100, num_1));
+                const num = +(offset.toString().replace('%', '')) / 100;
+                const fraction = Math.max(0, Math.min(100, num));
                 return h - fraction * h;
             }
             return h;
         }
         function updateScroll() {
             ticking = false;
-            var distanceFromTop = getOffset();
+            const distanceFromTop = getOffset();
             elements = elements.filter(function (i, e) {
-                var rect = e.getBoundingClientRect();
-                var top = rect.top;
+                const rect = e.getBoundingClientRect();
+                const top = rect.top;
                 if (top < distanceFromTop) {
                     fn(e);
                     return false;
@@ -452,7 +435,7 @@ $(function () {
         timeout = $.defval(timeout, 300), direction = $.defval(direction, 'left');
         //- Bind events
         $(this).on({
-            'mouseenter': function (ev) {
+            'mouseenter': ev => {
                 //- Match active tooltip
                 var tooltip = $('tooltip');
                 //- Check if any tooltip matched
@@ -496,7 +479,7 @@ $(function () {
                 }
                 tooltip.bounds('screen');
             },
-            'mouseleave': function (ev) {
+            'mouseleave': ev => {
                 //- Match active tooltip
                 var tooltip = $('tooltip');
                 //- Check if any tooltip matched
@@ -508,7 +491,7 @@ $(function () {
                 //- Timeout tooltip
                 setTimeout(function () {
                     if (index == tooltip.attr('index'))
-                        tooltip.addClass('hide').finishCss(function (ev) { return $(ev.currentTarget).remove(); });
+                        tooltip.addClass('hide').finishCss(ev => $(ev.currentTarget).remove());
                 }, timeout);
             },
         });
@@ -530,11 +513,7 @@ $(function () {
         }
         return $(this);
     };
-    jQuery.prototype.hoverCss = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.hoverCss = function (...args) {
         if (typeof (args[0]) == 'object') {
             //- Get specified properties
             var props = args[0];
@@ -542,12 +521,12 @@ $(function () {
             if (/^\d+dp$/.test(props['box-shadow'])) {
                 props['box-shadow'] = shadows[props['box-shadow'].toString()];
             }
-            return $(this).each(function (i, e) {
+            return $(this).each((i, e) => {
                 //- Define utility functions
                 var onenter = function () {
                     //- Save previous css
                     var prev = {};
-                    $.props(props).forEach(function (i) { return prev[i.Name] = $(e).css(i.Name); });
+                    $.props(props).forEach(i => prev[i.Name] = $(e).css(i.Name));
                     $(e).data({
                         'hover-css-prev': prev,
                         'hover-css-props': props,
@@ -587,7 +566,7 @@ $(function () {
             if (typeof classes != 'string')
                 classes = classes.join(' ');
             //- Return iterate through each element
-            return $(this).each(function (i, e) {
+            return $(this).each((i, e) => {
                 //- Define utility functions
                 var onenter = function (ev) {
                     $(ev.currentTarget).addClass(classes);
@@ -616,19 +595,19 @@ $(function () {
         }
     };
     jQuery.prototype.play = function () {
-        return $(this).each(function (i, e) { return $(e).get(0).play(); });
+        return $(this).each((i, e) => $(e).get(0).play());
     };
     jQuery.prototype.playing = function () {
         return !$(this).get(0).paused;
     };
     jQuery.prototype.pause = function () {
-        return $(this).each(function (i, e) { return $(e).get(0).pause(); });
+        return $(this).each((i, e) => $(e).get(0).pause());
     };
     jQuery.prototype.paused = function () {
         return $(this).get(0).paused;
     };
     jQuery.prototype.togglePlay = function () {
-        return $(this).each(function (i, e) {
+        return $(this).each((i, e) => {
             if (!$(e).playing())
                 $(e).play();
             else
@@ -640,20 +619,20 @@ $(function () {
     };
     jQuery.prototype.volume = function (value) {
         if (!isEmpty(value))
-            return $(this).each(function (i, e) { return $(e).get(0).volume = num(value).clamp(0, 1); });
+            return $(this).each((i, e) => $(e).get(0).volume = num(value).clamp(0, 1));
         else
             return $(this).get(0).volume;
     };
     jQuery.prototype.playtime = function (value) {
         if (!isEmpty(value))
-            return $(this).each(function (i, e) { return $(e).get(0).currentTime = num(value).clamp(0, $(e).duration()); });
+            return $(this).each((i, e) => $(e).get(0).currentTime = num(value).clamp(0, $(e).duration()));
         else
             return $(this).get(0).currentTime;
     };
     jQuery.prototype.rotate = function (value) {
         if (typeof (value) == 'string')
             value = value.replace('deg', '');
-        return $(this).each(function (i, e) { return $(e).css('transform', 'rotate(' + value + 'deg)'); });
+        return $(this).each((i, e) => $(e).css('transform', 'rotate(' + value + 'deg)'));
     };
     jQuery.prototype.changeIcon = function (icon, prefix) {
         var target = $(this).children('svg').addBack('svg');
@@ -663,16 +642,14 @@ $(function () {
             target.attr('data-prefix', prefix);
         return $(this);
     };
-    jQuery.prototype.overlay = function (opacity, duration, color) {
-        if (duration === void 0) { duration = 0; }
-        if (color === void 0) { color = '#212121'; }
+    jQuery.prototype.overlay = function (opacity, duration = 0, color = '#212121') {
         //- Return overlay of each element if specified
         if (isEmpty(opacity))
             return $(this).children('.overlay-element');
         //- Create local variables
         var overlays = [];
         //- Iterate through elements
-        $(this).each(function (i, e) {
+        $(this).each((i, e) => {
             //- Remove previous overlay if has
             if ($(e).is('.has-overlay'))
                 $(e).children('.overlay-element').remove();
@@ -713,11 +690,7 @@ $(function () {
         else
             return originalValFunction.call(this);
     };
-    jQuery.prototype.valchange = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.valchange = function (...args) {
         //- No arguments were specified
         if (args.length == 0)
             return $(this).each(function (i, e) {
@@ -731,15 +704,11 @@ $(function () {
         else
             return $(this).bind('valchange', args[0], args[1]);
     };
-    jQuery.prototype.attr = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.attr = function (...args) {
         //- Check if any argument than attribute name was specified
         if (typeof args[0] != 'string' || args.length > 1) {
             if (args.length > 1 && typeof args[1] == 'function') {
-                return $(this).each(function (i, e) {
+                return $(this).each((i, e) => {
                     $(e).attr(args[0], args[1](i, args[0]));
                 });
             }
@@ -767,11 +736,7 @@ $(function () {
         else
             return originalAttrFunction.apply(this, args);
     };
-    jQuery.prototype.attrchange = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.attrchange = function (...args) {
         //- No arguments were specified
         if (args.length == 0)
             return $(this).each(function (i, e) {
@@ -810,7 +775,7 @@ $(function () {
                     cords = { left: cords[0], top: cords[1] };
             }
             else {
-                if (!($.props(cords).first(function (i) { return i.Name.toLowerCase() == 'left'; }) && $.props(cords).first(function (i) { return i.Name.toLowerCase() == 'top'; })))
+                if (!($.props(cords).first(i => i.Name.toLowerCase() == 'left') && $.props(cords).first(i => i.Name.toLowerCase() == 'top')))
                     if ($(this).parent().get(0) == $(cords).parent().get(0) && $(this).parent().css('position') == 'relative') {
                         if ($(this).css('position') == 'fixed')
                             $(this).css('position', 'absolute');
@@ -830,17 +795,17 @@ $(function () {
             //- Offset was specified
             if (!isEmpty(offset)) {
                 if ($.type(offset) == 'number' || $.type(offset) == 'string') {
-                    var tempOffset = String(offset).addToStart('+=', function (s, v) { return !s.startsWith('+=') && !s.startsWith('-='); });
+                    var tempOffset = String(offset).addToStart('+=', (s, v) => !s.startsWith('+=') && !s.startsWith('-='));
                     offsetLeft = tempOffset;
                     offsetTop = tempOffset;
                 }
                 else if ($.type(offset) == 'array') {
-                    offsetLeft = String(offset[0]).addToStart('+=', function (s, v) { return !s.startsWith('+=') && !s.startsWith('-='); });
-                    offsetTop = String(offset[1]).addToStart('+=', function (s, v) { return !s.startsWith('+=') && !s.startsWith('-='); });
+                    offsetLeft = String(offset[0]).addToStart('+=', (s, v) => !s.startsWith('+=') && !s.startsWith('-='));
+                    offsetTop = String(offset[1]).addToStart('+=', (s, v) => !s.startsWith('+=') && !s.startsWith('-='));
                 }
                 else if ($.type(offset) == 'object') {
-                    offsetLeft = String(offset['left']).addToStart('+=', function (s, v) { return !s.startsWith('+=') && !s.startsWith('-='); });
-                    offsetTop = String(offset['top']).addToStart('+=', function (s, v) { return !s.startsWith('+=') && !s.startsWith('-='); });
+                    offsetLeft = String(offset['left']).addToStart('+=', (s, v) => !s.startsWith('+=') && !s.startsWith('-='));
+                    offsetTop = String(offset['top']).addToStart('+=', (s, v) => !s.startsWith('+=') && !s.startsWith('-='));
                 }
             }
             //- Apply CSS 
@@ -857,11 +822,7 @@ $(function () {
             return $(this);
         }
     };
-    jQuery.prototype.bounds = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.bounds = function (...args) {
         //- Create local variables
         var current = $(this).cords();
         var target = getbounds(args[0]);
@@ -913,11 +874,7 @@ $(function () {
             top: current.top,
         });
     };
-    jQuery.prototype.scrollProgress = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.prototype.scrollProgress = function (...args) {
         //- Create local variables
         var target = $(this).get(0);
         //- Replace html with window
@@ -936,7 +893,7 @@ $(function () {
             else
                 callback = args[1];
             //- Bind scroll event
-            $(target).scroll(function (ev) {
+            $(target).scroll(ev => {
                 //- Parse dynamic arguments
                 if (typeof (args[0]) == 'object' || typeof (args[0]) == 'string')
                     min = scrollPrecentage(target, Math.max($(args[0]).get(0).offsetTop, 0)), max = scrollPrecentage(target, $(args[0]).get(0).offsetTop + $(args[0]).outerHeight(true)), callback = args[1];
@@ -980,8 +937,7 @@ $(function () {
         //- Return element
         return $(this);
     };
-    jQuery.prototype.ripple = function (color, duration, overlay, position, multi) {
-        if (overlay === void 0) { overlay = true; }
+    jQuery.prototype.ripple = function (color, duration, overlay = true, position, multi) {
         //- Create local variables
         var color = $.defval(color, 'auto');
         var position = isEmpty(position) ? false : position;
@@ -1014,25 +970,25 @@ $(function () {
                 //- Get all current ripples at element
                 var ripples = $(ev.currentTarget).find('.ripple-effect');
                 //- Iterate through the ripples of the element
-                ripples.each(function (i, e) {
+                ripples.each((i, e) => {
                     //- Ripple is finished animating
                     if ($(e).is('.finished')) {
-                        $(e).fadeOut(200, function () { return $(e).remove(); });
+                        $(e).fadeOut(200, () => $(e).remove());
                     }
                     //- Ripple is still active
                     else {
-                        $(e).finishCss(function (ev) { return $(ev.currentTarget).fadeOut(200, function () { return $(e).remove(); }); });
+                        $(e).finishCss(ev => $(ev.currentTarget).fadeOut(200, () => $(e).remove()));
                     }
                 });
                 //- Trigger 'RippleEnd' event
                 $(ev.currentTarget).triggerHandler('rippleEnd');
             };
             //- Bind ripple end event
-            $(ev.currentTarget).on((_a = {},
-                _a[end] = function (ev2) { return rippleEnd(ev2); },
-                _a));
+            $(ev.currentTarget).on({
+                [end]: ev2 => rippleEnd(ev2)
+            });
             //- Bind ripple animation end event
-            ripple.finishCss(function (ev2) {
+            ripple.finishCss(ev2 => {
                 $(ev2.currentTarget).addClass('finished');
             });
             //- Append ripple
@@ -1052,25 +1008,23 @@ $(function () {
                     top: '',
                 });
             else
-                ripple.css((_b = {
-                        margin: 'auto',
-                        left: '',
-                        top: '',
-                        right: '',
-                        bottom: ''
-                    },
-                    _b[position] = '-50%',
-                    _b));
+                ripple.css({
+                    margin: 'auto',
+                    left: '',
+                    top: '',
+                    right: '',
+                    bottom: '',
+                    [position]: '-50%',
+                });
             //- Fire rippleStart events
             $(ev.currentTarget).triggerHandler('rippleStart');
-            var _a, _b;
         };
         //- Iterate through the elements
-        $(this).each(function (i, e) {
+        $(this).each((i, e) => {
             //- Bind events
-            $(e).on((_a = {},
-                _a[on] = rippleStart,
-                _a['mouseenter '] = function (ev) {
+            $(e).on({
+                [on]: rippleStart,
+                'mouseenter ': ev => {
                     //- Get correct color
                     if ($(ev.currentTarget).attr('ripple-color').toLowerCase() == 'auto')
                         color = $(ev.currentTarget).css('color');
@@ -1099,22 +1053,21 @@ $(function () {
                         overlayElement.appendTo(e);
                     }
                 },
-                _a['mouseleave focusout'] = function (ev) {
+                'mouseleave focusout': ev => {
                     //- Fadeout and remove overlay
                     if (!isEmpty(overlay))
                         $(e).find('.ripple-effect-overlay').addClass('hide')
-                            .finishCss(function () { return $(e).find('.ripple-effect-overlay.hide').remove(); });
+                            .finishCss(() => $(e).find('.ripple-effect-overlay.hide').remove());
                 },
-                _a['keyup'] = function (ev) {
+                'keyup': ev => {
                     if ($.isval(ev.key, 'Enter', ' ')) {
                         $(ev.currentTarget).click().focusout();
                     }
                     else if ($.isval(ev.key, 'Escape')) {
                         $(ev.currentTarget).focusout();
                     }
-                },
-                _a));
-            var _a;
+                }
+            });
         });
         //- Apply element class & attributes
         $(this).attr({
@@ -1125,51 +1078,47 @@ $(function () {
         return $(this);
     };
     //- JQueryStatic
-    jQuery.props = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.props = function (...args) {
         var obj = args[0];
         if (isEmpty(obj))
             obj = {};
         if (typeof obj == 'string' || $.type(obj) == 'array' || obj instanceof Array)
             return [];
         else
-            var members = Object.getOwnPropertyNames(obj).select(function (i) { return new MemberInfo(i, Object.getOwnPropertyDescriptor(obj, i)); });
+            var members = Object.getOwnPropertyNames(obj).select(i => new MemberInfo(i, Object.getOwnPropertyDescriptor(obj, i)));
         if (args.length == 1) {
             return members;
         }
         else if (args.length == 2) {
             if ($.isFunction(args[1])) {
-                members.forEach(function (e, i) { return args[1](e.Value, e.Name, i); });
+                members.forEach((e, i) => args[1](e.Value, e.Name, i));
             }
             else {
                 var obj2 = args[1];
                 if (isEmpty(obj2))
                     return obj;
-                var members2 = Object.getOwnPropertyNames(obj2).select(function (i) { return new MemberInfo(i, Object.getOwnPropertyDescriptor(obj2, i)); });
+                var members2 = Object.getOwnPropertyNames(obj2).select(i => new MemberInfo(i, Object.getOwnPropertyDescriptor(obj2, i)));
                 var result = Object.create(Object.getPrototypeOf(obj));
                 var covered = new Array();
                 function cover(m, m2) {
                     var name = null;
                     var value = null;
-                    name = notEmpty(m, m2, function (m) { return m.Name; });
+                    name = notEmpty(m, m2, (m) => m.Name);
                     if (!isEmpty(m) && !isEmpty(m.Value) && $.isPlainObject(m.Value) && !isEmpty(m2) && !isEmpty(m2.Value) && $.isPlainObject(m2.Value))
                         value = $.props(m.Value, m2.Value);
                     else
-                        value = notEmpty(m, m2, function (m) { return m.Value; });
+                        value = notEmpty(m, m2, (m) => m.Value);
                     result[name] = value;
                 }
-                members.forEach(function (m) {
+                members.forEach(m => {
                     if (!covered.contains(m.Name)) {
-                        var m2 = members2.first(function (i) { return i.Name == m.Name; });
+                        var m2 = members2.first(i => i.Name == m.Name);
                         return cover(m, m2);
                     }
                 });
-                members2.forEach(function (m2) {
+                members2.forEach(m2 => {
                     if (!covered.contains(m2.Name)) {
-                        var m = members.first(function (i) { return i.Name == m2.Name; });
+                        var m = members.first(i => i.Name == m2.Name);
                         cover(m, m2);
                     }
                 });
@@ -1180,7 +1129,7 @@ $(function () {
     jQuery.parseStyle = function (rules) {
         var cssText = '';
         var propWhitespace = '   ';
-        $.props(rules, function (p, selector) {
+        $.props(rules, (p, selector) => {
             if (selector[0] == '@') {
                 cssText += selector + ' {' + '\r\n';
                 cssText += $.parseStyle(p);
@@ -1191,7 +1140,7 @@ $(function () {
                 if (typeof p == 'string')
                     cssText += p.replace('\r\n', propWhitespace + '\r\n') + '\r\n';
                 else
-                    $.props(p, function (propVal, propName) { return cssText += propWhitespace + propName + ': ' + propVal + ';' + '\r\n'; });
+                    $.props(p, (propVal, propName) => cssText += propWhitespace + propName + ': ' + propVal + ';' + '\r\n');
                 cssText += '}' + '\r\n';
             }
         });
@@ -1221,11 +1170,7 @@ $(function () {
         else
             return obj;
     };
-    jQuery.defval = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.defval = function (...args) {
         //- One value specified
         if (isEmpty(args[0]) || $.type(args[0]) != 'array') {
             //- Only value specified (Unlikely)
@@ -1249,33 +1194,29 @@ $(function () {
             //- Only values specified
             if (args.length == 1) {
                 //- Return first value that is not empty
-                return arr.first(function (i) { return !isEmpty(i); });
+                return arr.first(i => !isEmpty(i));
             }
             //- Values and only condition OR only default specified
             else if (args.length == 2) {
                 //- Values and condition specified
                 if (typeof (args[1]) == 'function') {
                     //- Return the first value that satisfies the specified condition
-                    return arr.first(function (i) { return args[1](i); });
+                    return arr.first(i => args[1](i));
                 }
                 //- Values and default specified
                 else {
-                    var val = arr.first(function (i) { return !isEmpty(i); });
+                    var val = arr.first(i => !isEmpty(i));
                     return !isEmpty(val) ? val : args[1];
                 }
             }
             //- Values, default and condition specified
             else if (args.length == 3) {
-                var val = arr.first(function (i) { return args[2](i, args[1]); });
+                var val = arr.first(i => args[2](i, args[1]));
                 return !isEmpty(val) ? val : args[1];
             }
         }
     };
-    jQuery.call = function (fn, thisArg) {
-        var args = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            args[_i - 2] = arguments[_i];
-        }
+    jQuery.call = function (fn, thisArg, ...args) {
         /**
         * The function to call a single function
         */
@@ -1289,7 +1230,7 @@ $(function () {
             if (typeof fn == 'function')
                 return [callF(fn)];
             else
-                return fn.select(function (curFn) { return callF(curFn); });
+                return fn.select(curFn => callF(curFn));
         }
     };
     jQuery.color = function (name, shade) {
@@ -1310,12 +1251,12 @@ $(function () {
                     });
                 }
                 else if (typeof val == 'function') {
-                    parseHash().forEach(function (i) { return val(i.name, i.value); });
+                    parseHash().forEach((i) => val(i.name, i.value));
                 }
             }
             else {
                 var h = parseHash();
-                if (h.contains(function (i) { return i.name.toLowerCase() == val.toString().toLowerCase(); })) {
+                if (h.contains(i => i.name.toLowerCase() == val.toString().toLowerCase())) {
                     document.location.hash = h.parse('/', function (i) {
                         if (i.name.toLowerCase() == val.toString().toLowerCase()) {
                             if (isEmpty(value))
@@ -1330,7 +1271,7 @@ $(function () {
                 else {
                     if (!isEmpty(value))
                         h.push({ name: val, value: value });
-                    document.location.hash = h.parse('/', function (i) { return i.name + '=' + i.value; });
+                    document.location.hash = h.parse('/', i => i.name + '=' + i.value);
                 }
             }
         }
@@ -1381,11 +1322,7 @@ $(function () {
     jQuery.isEmpty = function (val) {
         return isEmpty(val);
     };
-    jQuery.isval = function (target) {
-        var values = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            values[_i - 1] = arguments[_i];
-        }
+    jQuery.isval = function (target, ...values) {
         //- Return if values contains target
         return values.contains(target);
     };
@@ -1393,11 +1330,7 @@ $(function () {
         console.log(values);
         return values;
     };
-    jQuery.clear = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.clear = function (...args) {
         //- Create local variables
         var delay, condition;
         if (args.length > 0)
@@ -1410,9 +1343,9 @@ $(function () {
                 condition = args[0];
             }
         if (!isEmpty(delay) && !isEmpty(condition))
-            setTimeout(function () { return $.valFn(condition) ? clear() : ''; }, delay);
+            setTimeout(() => $.valFn(condition) ? clear() : '', delay);
         else if (!isEmpty(delay))
-            setTimeout(function () { return clear(); }, delay);
+            setTimeout(() => clear(), delay);
         else if (!isEmpty(condition))
             $.valFn(condition) ? clear() : '';
         else
@@ -1440,11 +1373,7 @@ $(function () {
         $('html').attr('lock-scroll-count', count);
         return count;
     };
-    jQuery.hyper = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.hyper = function (...args) {
         //- Create local variables
         var events = '', selector = '*', fn;
         //- Parse arguments
@@ -1458,7 +1387,7 @@ $(function () {
             selector = args[1];
         }
         //- Bind HTML events
-        $(document).on(events, selector, {}, function (ev) {
+        $(document).on(events, selector, {}, (ev) => {
             if ($(ev.target).is(selector)) {
                 ev.currentTarget = ev.target;
             }
@@ -1467,11 +1396,7 @@ $(function () {
             fn(ev);
         });
     };
-    jQuery.setRequest = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.setRequest = function (...args) {
         //- Parse arguments
         if ($.type(args[0]) == 'string') {
             customRequestSettings = {
@@ -1493,11 +1418,7 @@ $(function () {
             customRequestSettings.contentType = 'application/json; charset=UTF-8';
         return customRequestSettings;
     };
-    jQuery.request = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.request = function (...args) {
         //- Create local variables
         var settings = customRequestSettings;
         var complete, error;
@@ -1538,10 +1459,10 @@ $(function () {
     jQuery.message = function (label, content, buttons, color) {
         //- Create overlay
         var overlay = $.dialog('message-overlay', .2).appendTo('body');
-        overlay.children().click(function (ev) {
-            dialog.removeClass('active').finishCss(function (ev) {
+        overlay.children().click(ev => {
+            dialog.removeClass('active').finishCss(ev => {
                 $(ev.currentTarget).remove();
-                overlay.fadeOut(200, function () { return overlay.remove(); });
+                overlay.fadeOut(200, () => overlay.remove());
             });
         });
         //- Create dialog
@@ -1575,9 +1496,7 @@ $(function () {
     jQuery.elem = function (tag, className, content) {
         return $('<' + tag + '></' + tag + '>').addClass(className).append(content);
     };
-    jQuery.div = function (className, text) {
-        if (className === void 0) { className = ''; }
-        if (text === void 0) { text = ''; }
+    jQuery.div = function (className = '', text = '') {
         return $('<div></div>').addClass(className).text(text);
     };
     jQuery.video = function (options) {
@@ -1671,7 +1590,7 @@ $(function () {
             'effect-type': effects,
         })
             .on({
-            'focusin click': function (ev) {
+            'focusin click': ev => {
                 //- Check if input is disabled
                 if ($(ev.currentTarget).children(textarea ? 'textarea' : 'input').is('[disabled]'))
                     return;
@@ -1689,7 +1608,7 @@ $(function () {
                     .css('border-bottom-color', theme)
                     .css('transform-origin', ev.offsetX + 'px center 0px');
             },
-            'focusout': function (ev) {
+            'focusout': ev => {
                 //- Check if input is disabled
                 if ($(ev.currentTarget).children(textarea ? 'textarea' : 'input').is('[disabled]'))
                     return;
@@ -1702,12 +1621,12 @@ $(function () {
                     .css('color', $.defval($(ev.currentTarget).attr('label-color'), ''))
                     .end().end().css('color', '');
             },
-            'valchange': function (ev) {
+            'valchange': ev => {
                 if (typeof ev.value != 'string')
                     ev.value = ev.value.toString();
                 $(ev.currentTarget).find(textarea ? 'textarea' : 'input').val(ev.value);
             },
-            'attrchange': function (ev) {
+            'attrchange': ev => {
                 switch (ev.value[0]) {
                     case 'input-color':
                         $(ev.currentTarget).find(textarea ? 'textarea' : 'input').css('color', ev.value[1]);
@@ -1725,14 +1644,14 @@ $(function () {
         });
         //- Bind input events
         input.on({
-            'valchange': function (ev) {
+            'valchange': ev => {
                 //- Fire 'focusin' & 'focusout' events
                 $(ev.currentTarget).parent('.text-input-element').focusin().focusout();
             },
-            'change': function (ev) {
+            'change': ev => {
                 $(ev.currentTarget).parent('.text-input-element').change();
             },
-            'keypress keydown keyup mouseclick mousedown mouseup': function (ev) {
+            'keypress keydown keyup mouseclick mousedown mouseup': (ev) => {
                 //if (textarea)
                 //    $(ev.currentTarget).height('auto').height($(ev.currentTarget).get(0).scrollHeight).resize()
                 $(ev.currentTarget).parent('.text-input-element').trigger(ev);
@@ -1786,7 +1705,7 @@ $(function () {
                     }
                     //- Create element
                     var elem = $.elem('td', 'date-picker-dialog-day').text(i).ripple(null, null, true, true)
-                        .click(function (ev) {
+                        .click(ev => {
                         current = new Date(date.getFullYear(), date.getMonth(), $(ev.currentTarget).text().toNumber());
                         input.val(current.dateToString('mm/dd/yyyy'));
                         close();
@@ -1813,25 +1732,25 @@ $(function () {
             var dateHeader = $.div('date-picker-dialog-header-btn').appendTo(btns);
             //- Prev/next buttons
             var moveBtns = $.div('date-picker-dialog-move-btns fa-lg').appendTo(btns);
-            var prevIcon = $.icon('fas fa-angle-left fa-fw', 'date-picker-dialog-move-btn').ripple(null, null, .1, true).click(function (ev) { return showMonth(current.nextMonth(-1)); }).appendTo(moveBtns);
-            var nextIcon = $.icon('fas fa-angle-right fa-fw', 'date-picker-dialog-move-btn').ripple(null, null, .1, true).click(function (ev) { return showMonth(current.nextMonth()); }).appendTo(moveBtns);
+            var prevIcon = $.icon('fas fa-angle-left fa-fw', 'date-picker-dialog-move-btn').ripple(null, null, .1, true).click(ev => showMonth(current.nextMonth(-1))).appendTo(moveBtns);
+            var nextIcon = $.icon('fas fa-angle-right fa-fw', 'date-picker-dialog-move-btn').ripple(null, null, .1, true).click(ev => showMonth(current.nextMonth())).appendTo(moveBtns);
             //- Day titles
             var titles = $.elem('tr', 'date-picker-dialog-titles'), gap = $.elem('th', 'date-picker-dialog-titles-gap');
-            'S,M,T,W,T,F,S'.split(',').forEach(function (i) {
+            'S,M,T,W,T,F,S'.split(',').forEach(i => {
                 //- Create element
                 var elem = $.elem('th', 'date-picker-dialog-title').text(i);
                 //- Append element
                 elem.appendTo(titles);
             });
             //- presets
-            var preset_now = $.div('date-picker-dialog-preset', 'NOW').appendTo(presets).css('color', theme).ripple().click(function (ev) {
+            var preset_now = $.div('date-picker-dialog-preset', 'NOW').appendTo(presets).css('color', theme).ripple().click(ev => {
                 current = new Date();
                 input.val(current.dateToString('mm/dd/yyyy'));
                 close();
             });
             var preset_custom = $.div('date-picker-dialog-preset date-picker-dialog-preset-custom', 'CUSTOM') /*.appendTo(presets)*/.css('color', theme).ripple()
-                .click(function (ev) {
-                $.message('Custom date preset', '', { ACCEPT: function (ev) { } });
+                .click(ev => {
+                $.message('Custom date preset', '', { ACCEPT: ev => { } });
             });
             //- Append to table
             table.append([titles, gap]);
@@ -1851,7 +1770,7 @@ $(function () {
         };
         var close = function () {
             var ev = $('.date-picker-dialog').first()
-                .fadeOut(200, function () {
+                .fadeOut(200, () => {
                 //- Remove element
                 $(ev).remove();
                 //- Unlock scroll
@@ -1860,7 +1779,7 @@ $(function () {
         };
         //- Bind icon events
         icon.on({
-            'click': function (ev) {
+            'click': ev => {
                 //- Focus on text input
                 $(ev.currentTarget).parent().find('input').focusin();
                 //- Close any open dialogs
@@ -1871,7 +1790,7 @@ $(function () {
         });
         //- Bind input events
         input.on({
-            'valchange change': function (ev) {
+            'valchange change': ev => {
                 icon.find('span').remove();
                 var date = new Date($(ev.currentTarget).find('input').val());
                 if (date.toString() != 'Invalid Date')
@@ -1892,7 +1811,7 @@ $(function () {
         });
         //- Bind element events
         input.on({
-            'valchange': function (ev) { return $(ev.currentTarget).find('input').val(ev.value); },
+            'valchange': ev => $(ev.currentTarget).find('input').val(ev.value),
         });
         //- Return element
         return input;
@@ -1908,7 +1827,7 @@ $(function () {
         //- Parse options
         if ($.type(options) == 'array') {
             var tempoptions = {};
-            options.forEach(function (i) { return tempoptions[i] = null; });
+            options.forEach(i => tempoptions[i] = null);
             options = tempoptions;
         }
         //- Iterate through the options
@@ -1921,7 +1840,7 @@ $(function () {
             });
             //- Bind option events
             option.on({
-                'click': function (ev) {
+                'click': ev => {
                     //- Execute callback if specified
                     if (!isEmpty(f))
                         f(ev);
@@ -1930,7 +1849,7 @@ $(function () {
                     //- Execute event handlers
                     menu.change();
                 },
-                'select': function (ev) { return option.click(); }
+                'select': ev => option.click()
             });
             //- Append option
             option.appendTo(menu);
@@ -1940,11 +1859,7 @@ $(function () {
         //- Return menu
         return menu;
     };
-    jQuery.dropdown = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.dropdown = function (...args) {
         //- Create local variables
         var label = '', theme = '#008aff', options = [], texteffects = true, iconclass = 'fa fa-sort-down fa-fw';
         //- Parse specified arguments
@@ -1963,11 +1878,11 @@ $(function () {
         //- Parse specified options
         if ($.type(options) == 'array') {
             var obj = {};
-            options.select(function (i) { return obj[i] = null; });
+            options.select(i => obj[i] = null);
             options = obj;
         }
         else if ($.type(options) != 'object') {
-            options = (_a = {}, _a[options] = null, _a);
+            options = { [options]: null };
         }
         //- Create input element
         var input = $.textinput(label, theme, texteffects).addClass('dropdown-element');
@@ -1980,7 +1895,7 @@ $(function () {
             //- Lock scroll
             $.scrollLock();
             //- Close any previous dialogs
-            $('.dropdown-element-dialog').each(function (i, e) { return close(e); });
+            $('.dropdown-element-dialog').each((i, e) => close(e));
             //- Create dropdown dialog
             var drp = $.div('dropdown-element-dialog').attr({ 'tab-index': -1 }).shadow('6dp').appendTo('body');
             //- Define utility functions
@@ -1993,13 +1908,13 @@ $(function () {
                 opt.ripple();
                 //- Bind option events
                 opt.data('dropdown-option-function', fn).on({
-                    'click': function (ev) {
+                    'click': ev => {
                         if (!$(ev.currentTarget).parent().find('.selected').is(ev.currentTarget)) {
                             $(ev.currentTarget).select();
                             close(drp);
                         }
                     },
-                    'select': function (ev) {
+                    'select': ev => {
                         //- Define local variables
                         var tar = $(ev.currentTarget);
                         //- Set CSS & classes (1)
@@ -2026,17 +1941,17 @@ $(function () {
             };
             //- Create default option
             if (!isEmpty(input.attr('no-none')))
-                newOption('None', function (ev) { return input.val(''); }, true);
+                newOption('None', ev => input.val(''), true);
             //- Iterate through the options
             var opts = $.props($(target).data('dropdown-options'));
             if (input.hasAttr('sort'))
-                opts.sort().forEach(function (i) { return newOption(i.Name, i.Value); });
+                opts.sort().forEach(i => newOption(i.Name, i.Value));
             else
-                opts.forEach(function (i) { return newOption(i.Name, i.Value); });
+                opts.forEach(i => newOption(i.Name, i.Value));
             //- Bind dropdown events
-            drp.out(function (ev) { return close(ev.currentTarget); });
+            drp.out(ev => close(ev.currentTarget));
             drp.on({
-                'keydown': function (ev) {
+                'keydown': ev => {
                     switch (ev.key) {
                         case 'Escape':
                             close(ev.currentTarget);
@@ -2063,19 +1978,19 @@ $(function () {
         };
         //- Bind icon events
         icon.on({
-            'click': function (ev) { return open($(ev.currentTarget).parent().parent()); }
+            'click': ev => open($(ev.currentTarget).parent().parent())
         });
         //- Bind input events
         input.on({
-            'keyup': function (ev) {
+            'keyup': ev => {
                 if (ev.keyCode == 32 || ev.keyCode == 13)
                     $(ev.currentTarget).parent().find('.dropdown-element-icon').click();
             },
-            'click': function (ev) {
+            'click': ev => {
                 open(ev.currentTarget);
             },
-            'valchange': function (ev) {
-                var match = $.props($(ev.currentTarget).data('dropdown-options')).contains(function (i) { return i.Name.toLowerCase() == ev.value.toLowerCase(); });
+            'valchange': ev => {
+                var match = $.props($(ev.currentTarget).data('dropdown-options')).contains(i => i.Name.toLowerCase() == ev.value.toLowerCase());
                 if (!isEmpty(match))
                     $(ev.currentTarget).find('input').val(ev.value);
             }
@@ -2086,13 +2001,8 @@ $(function () {
             .find('input').prop('readonly', true);
         //- Return element
         return input;
-        var _a;
     };
-    jQuery.snackbar = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.snackbar = function (...args) {
         //- Create local variables
         var message = args.at(0), duration = 4500, action;
         //- Parse specified arguments
@@ -2120,7 +2030,7 @@ $(function () {
         var hide = function (target) {
             if (!$(target).is('.hide'))
                 $(target).addClass('hide');
-            return $(target).finishCss(function (ev) {
+            return $(target).finishCss(ev => {
                 $(ev.currentTarget).remove();
             });
         };
@@ -2134,7 +2044,7 @@ $(function () {
         //- Append snackbar
         snack.append([text, action]).appendTo('body');
         //- Bind events
-        snack.mouseleave(function (ev) {
+        snack.mouseleave(ev => {
             if ($(ev.currentTarget).hasClass('timeout'))
                 hide(ev.currentTarget);
         });
@@ -2150,11 +2060,7 @@ $(function () {
         //- return snackbar
         return snack;
     };
-    jQuery.tabs = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    jQuery.tabs = function (...args) {
         //- Create local variables
         var items = [], theme = '#008aff';
         //- Parse specified arguments
@@ -2168,7 +2074,7 @@ $(function () {
             });
         }
         else if ($.type(args[0]) == 'array') {
-            items = args[0].select(function (i) { return [i, null]; });
+            items = args[0].select(i => [i, null]);
         }
         //- Create tabs wrapper
         var wrapper = $.div('tabs-wrapper'); /*.attr('slide-height', '')*/
@@ -2179,7 +2085,7 @@ $(function () {
         //- Create content view
         var view = $.div('tabs-menu-tab-content-viewer');
         //- Iterate through the items
-        items.forEach(function (i) {
+        items.forEach(i => {
             //- Create tab
             var tab = $.div('tabs-menu-tab');
             //- Create tab label
@@ -2188,7 +2094,7 @@ $(function () {
             var content = $.div('tabs-menu-tab-content-view').append($.valFn($.defval(i[1], '')));
             //- Bind tab events && data
             tab.on({
-                'click select': function (ev) {
+                'click select': (ev) => {
                     //- Check if tab is already selected
                     if ($(ev.currentTarget).is('.selected'))
                         return;
@@ -2212,7 +2118,7 @@ $(function () {
                         transition: transition
                     });
                     //- Hide previous content
-                    view.replaceClass('active', 'hide').finishCss(function (ev) {
+                    view.replaceClass('active', 'hide').finishCss(ev => {
                         //- Show current content
                         $(ev.currentTarget).replaceClass('hide', 'active');
                         //- Slide height if specified
@@ -2259,7 +2165,7 @@ $(function () {
         var icon = $.icon('far fa-check', 'checkbox-element-background-icon').appendTo(background);
         //- Bind events
         input.on({
-            'valchange change click': function (ev) {
+            'valchange change click': ev => {
                 //- Create local variables
                 var v = $(ev.currentTarget).val();
                 if (!isEmpty(v))
@@ -2271,7 +2177,7 @@ $(function () {
             }
         });
         wrapper.on({
-            'click': function (ev) {
+            'click': (ev) => {
                 //- Set 'checked' attribute
                 if ($(ev.currentTarget).find('input').hasAttr('checked'))
                     $(ev.currentTarget).val('false');
@@ -2280,7 +2186,7 @@ $(function () {
                 //- Raise 'change' event wrapper
                 $(ev.currentTarget).change();
             },
-            'valchange': function (ev) {
+            'valchange': ev => {
                 //- Set value to input 
                 $(ev.currentTarget).find('input').val(ev.value);
                 //- Raise 'change' event wrapper
@@ -2302,7 +2208,7 @@ $(function () {
         //- Create button element
         var btn = $.elem('button', classes, label).attr('type', 'button');
         //- Set events
-        btn.click(fn).ready(function (e) { return $(btn).mouseleave(); });
+        btn.click(fn).ready(e => $(btn).mouseleave());
         //- Return button
         return btn;
     };
@@ -2321,11 +2227,11 @@ $(function () {
             var title = $.elem('step-title', '', name), icon = $.elem('step-icon', '', index + 1), content = $.elem('step-content', '', $.valFn(v)).attr('stage', index + 1);
             //- Set step events
             step.on({
-                'click': function (ev) {
+                'click': ev => {
                     //- Raise target 'select' event
                     $(ev.currentTarget).select();
                 },
-                'select': function (ev) {
+                'select': ev => {
                     //- Remove any previous selections
                     $(ev.currentTarget).siblings('.selected').removeClass('selected').find('step-icon').css('background', '');
                     //- Set current target as selected
@@ -2349,15 +2255,15 @@ $(function () {
         //- Parse steps
         if ($.isPlainObject(steps)) {
             //- Iterate thorugh the steps
-            $.props(steps, function (v, n, i) { return createStep(n, v, i); });
+            $.props(steps, (v, n, i) => createStep(n, v, i));
         }
         else if ($.type(steps) == 'array') {
             //- Iterate thorugh the steps
-            steps.forEach(function (n, i) { return createStep(n, null, i); });
+            steps.forEach((n, i) => createStep(n, null, i));
         }
         else {
             //- Iterate thorugh the steps
-            $(steps).each(function (i, e) { return createStep(e, null, i); });
+            $(steps).each((i, e) => createStep(e, null, i));
         }
         //- Append line
         stepsElm.children('step:not(:last-of-type)').after($.elem('line'));
@@ -2435,16 +2341,13 @@ $(function () {
     Date.prototype.lastDayInMonth = function () {
         return new Date(this.currentYear(), this.currentMonth(), 0);
     };
-    Date.prototype.nextDay = function (days) {
-        if (days === void 0) { days = 1; }
+    Date.prototype.nextDay = function (days = 1) {
         return new Date(this.getFullYear(), this.getMonth(), this.getDate() + days);
     };
-    Date.prototype.nextMonth = function (months) {
-        if (months === void 0) { months = 1; }
+    Date.prototype.nextMonth = function (months = 1) {
         return new Date(this.getFullYear(), this.getMonth() + months, this.getDate());
     };
-    Date.prototype.nextYear = function (years) {
-        if (years === void 0) { years = 1; }
+    Date.prototype.nextYear = function (years = 1) {
         return new Date(this.getFullYear(), this.getMonth() + years, this.getDate());
     };
     Date.prototype.getMonthName = function () {
@@ -2462,35 +2365,30 @@ var endAnimationEvents = 'animationend webkitAnimationEnd oanimationend MSAnimat
 /**
 * Represents information of a property from an object
 */
-var MemberInfo = /** @class */ (function () {
-    function MemberInfo(Name, Desc) {
+class MemberInfo {
+    constructor(Name, Desc) {
         this.Name = Name;
         this.Desc = Desc;
     }
-    Object.defineProperty(MemberInfo.prototype, "Value", {
-        /**
-         * Gets the value of the current member
-         */
-        get: function () {
-            try {
-                var val = this.Desc.value;
-                if (val == undefined)
-                    val = this.Desc.get();
-                return val;
-            }
-            catch (e) { }
-        },
-        enumerable: true,
-        configurable: true
-    });
+    /**
+     * Gets the value of the current member
+     */
+    get Value() {
+        try {
+            var val = this.Desc.value;
+            if (val == undefined)
+                val = this.Desc.get();
+            return val;
+        }
+        catch (e) { }
+    }
     /**
     * Returns the current member info in the format [Name: Value]
     */
-    MemberInfo.prototype.toString = function () {
+    toString() {
         return '[' + this.Name + ': ' + this.Value + ']';
-    };
-    return MemberInfo;
-}());
+    }
+}
 var ColorPalette;
 (function (ColorPalette) {
     ColorPalette[ColorPalette["Black"] = 0] = "Black";
@@ -2563,11 +2461,7 @@ function isEmpty(val) {
 /**
 * Not empty
 */
-function notEmpty() {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
+function notEmpty(...args) {
     var obj1 = args[0];
     var obj2 = args[1];
     if (args.length == 3) {
@@ -2596,14 +2490,10 @@ function getUrlValue(name) {
 /**
 * Sets the url value by the specified name and returns the full url
 */
-function setUrlValue() {
-    var params = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        params[_i] = arguments[_i];
-    }
+function setUrlValue(...params) {
     var parts = window.location.toString().split('#');
     var url = new URL(parts[0]);
-    params.forEach(function (i) {
+    params.forEach(i => {
         if (!isEmpty(i.value))
             url.searchParams.set(i.name, i.value);
         else if (url.searchParams.has(i.name))
@@ -2618,7 +2508,7 @@ function setUrlValue() {
 * Parse the current url hash
 */
 function parseHash() {
-    return ('#' + document.location.hash).matches(/[#//](\w+)=([^/]+)\\*/g).select(function (i) { return { name: i[1], value: i[2] }; });
+    return ('#' + document.location.hash).matches(/[#//](\w+)=([^/]+)\\*/g).select(i => { return { name: i[1], value: i[2] }; });
 }
 /**
 * Converts the base64 to byte[]
@@ -2648,8 +2538,7 @@ function getUniqueID() {
     var val = random().toString();
     return val;
 }
-function getColorCode(palette, tone) {
-    if (tone === void 0) { tone = '500'; }
+function getColorCode(palette, tone = '500') {
     switch (palette) {
         case ColorPalette.Red:
             switch (tone) {
@@ -3013,16 +2902,13 @@ function precisionRound(number, precision) {
     var factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
 }
-function pointWithin(point, bounderies, bounderiesStart) {
-    if (bounderiesStart === void 0) { bounderiesStart = [0, 0]; }
+function pointWithin(point, bounderies, bounderiesStart = [0, 0]) {
     var pointX = point[0], pointY = point[1];
     var boundX = bounderies[0], boundY = bounderies[1];
     var boundXstart = bounderiesStart[0], boundYstart = bounderiesStart[1];
     return (pointX >= boundXstart && pointX <= boundX) && (pointY >= boundYstart && pointY <= boundY);
 }
-function clampPoint(point, bounderies, bounderiesStart, factor) {
-    if (bounderiesStart === void 0) { bounderiesStart = [0, 0]; }
-    if (factor === void 0) { factor = [0, 0]; }
+function clampPoint(point, bounderies, bounderiesStart = [0, 0], factor = [0, 0]) {
     var pointX = point[0], pointY = point[1];
     var boundX = bounderies[0], boundY = bounderies[1];
     var boundXstart = bounderiesStart[0], boundYstart = bounderiesStart[1];
@@ -3037,13 +2923,10 @@ function clampPoint(point, bounderies, bounderiesStart, factor) {
         pointY = boundY - factorY;
     return [pointX, pointY];
 }
-function pointWithinScreen(point, bounderiesStart) {
-    if (bounderiesStart === void 0) { bounderiesStart = [0, 0]; }
+function pointWithinScreen(point, bounderiesStart = [0, 0]) {
     return pointWithin(point, [screen.width, screen.height], bounderiesStart);
 }
-function clampPointInScreen(point, bounderiesStart, factor) {
-    if (bounderiesStart === void 0) { bounderiesStart = [0, 0]; }
-    if (factor === void 0) { factor = [0, 0]; }
+function clampPointInScreen(point, bounderiesStart = [0, 0], factor = [0, 0]) {
     return clampPoint(point, [screen.width, screen.height], bounderiesStart, factor);
 }
 function num(v) {
@@ -3091,7 +2974,7 @@ function isIOS() {
     var x2 = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     return x1 || x2;
 }
-var Clipboard = (function (window, document, navigator) {
+const Clipboard = (function (window, document, navigator) {
     var textArea, copy;
     function isOS() {
         return navigator.userAgent.match(/ipad|iphone/i);
@@ -3130,8 +3013,7 @@ var Clipboard = (function (window, document, navigator) {
         copy: copy
     };
 })(window, document, navigator);
-function scrollPrecentage(target, scrollTop) {
-    if (scrollTop === void 0) { scrollTop = null; }
+function scrollPrecentage(target, scrollTop = null) {
     //- Create local variables
     var target = $(target).get(0), customTop = !!scrollTop;
     var clientHeight = target.clientHeight, scrollHeight = target.scrollHeight;
@@ -3151,7 +3033,7 @@ function scrollPrecentage(target, scrollTop) {
 // #region On ready
 $(function () {
     //- Clear console on ready.
-    $.clear(clearConsoleOnReadyDelay, function () { return clearConsoleOnReady; });
+    $.clear(clearConsoleOnReadyDelay, () => clearConsoleOnReady);
     //- Set default custom request error callback if not specified
     if (isEmpty(customRequestError))
         customRequestError = function (message, stacktrace) {
@@ -3166,7 +3048,7 @@ $(function () {
             throw exception;
         };
     //- Apply default hyper classes
-    $.hyper('mouseenter mouseleave mousedown mouseup focusin focusout', '[overlay]', function (ev) {
+    $.hyper('mouseenter mouseleave mousedown mouseup focusin focusout', '[overlay]', ev => {
         //- Make sure target has 'overlay' attr
         if (!$(ev.currentTarget).hasAttr('overlay'))
             $(ev.currentTarget).attr('overlay', '1-2-3');
@@ -3209,7 +3091,7 @@ $(function () {
                 break;
         }
     });
-    $.hyper('mouseenter mouseleave mousedown mouseup', '[float]', function (ev) {
+    $.hyper('mouseenter mouseleave mousedown mouseup', '[float]', ev => {
         //- Make sure floating target has 'float' attr
         if (!$(ev.currentTarget).hasAttr('float'))
             $(ev.currentTarget).attr('float', '2-3-6');
@@ -3239,17 +3121,17 @@ $(function () {
                 break;
         }
     });
-    $.hyper('mouseenter mouseleave mousedown mouseup', '.action', function (ev) {
+    $.hyper('mouseenter mouseleave mousedown mouseup', '.action', ev => {
         if (!isEmpty($(ev.currentTarget).text()))
             $(ev.currentTarget).css('border-radius', '4px');
         else
             $(ev.currentTarget).css('border-radius', '');
     });
-    $.hyper('click', '.next-step-btn', function (ev) {
+    $.hyper('click', '.next-step-btn', (ev) => {
         //- Get id
         var id = $(ev.currentTarget).parents('contents').data('stepper-id');
         //- Get corresponding steps
-        $('steps').filter(function (i, e) { return $(e).data('stepper-id') == id; }).find('step.selected').nextAll('step').first().select();
+        $('steps').filter((i, e) => $(e).data('stepper-id') == id).find('step.selected').nextAll('step').first().select();
     });
     //- Initiate needed default hyper classes
     $('[overlay], [float], .action').mouseleave();
