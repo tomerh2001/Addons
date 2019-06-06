@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA;;;EAGE;AAEF,AAAA,CAAC,EAAE,CAAC,AAAA,MAAM,EAAE,CAAC,AAAA,OAAO,CAAC;EACjB,WAAW,EAAE,aAAa;CAC7B",
+    "sources": [
+        "Addons.scss"
+    ],
+    "names": [],
+    "file": "Addons.css"
+}

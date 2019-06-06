@@ -1,4 +1,5 @@
 function start() {
-    // Code here
+    var a = $('<div>Hello</div>').appendTo('body')
+        .observe(i => console.log(i));
 }
 //# sourceMappingURL=Index.js.map
