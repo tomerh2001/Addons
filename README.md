@@ -1,35 +1,34 @@
-// ================================================================//
+================================================================//
 
-//                          - Addons -                             //
+                         - Addons -                             //
 
-// ================================================================//
+================================================================//
 
-// ~
+~
 
-// The 'Addons' libary is an intellectual-property.
-// you are not allowed to redistribute or sell the content of this libary
-// as yours, all rights reserved to Tomer Horowitz (@Tomergt45).
+The 'Addons' libary is an intellectual-property.
 
-//
+you are not allowed to redistribute or sell the content of this libary
 
-// Partially inspired by Google Material-Design.
+as yours, all rights reserved to Tomer Horowitz (@Tomergt45).
 
-//
 
-// Requirements:
+Partially inspired by Google Material-Design.
 
-// JQuery
 
-//
+Requirements:
 
-// Libary contains:
+JQuery
 
-// - Predefined element templates.
 
-// - UI Special effects.
+Libary contains:
 
-// - Extention/Utility functions.
+- Predefined element templates.
 
-// ~
+- UI Special effects.
+
+- Extention/Utility functions.
+
+~
 
 
