@@ -1,4 +1,19 @@
 # Addons
-Javascript addons library created by tomer horowitz,
-
-this libary is and was created for the personal use of tomer horowitz, any use of this library without the agreement of tomer horowitz is not allowed, all rights reserved to tomer horowitz, the creator of this libary.
+//================================================================//
+//                          - Addons -                            //
+//================================================================//
+// ~
+// The 'Addons' libary is an intellectual-property.
+// you are not allowed to redistribute or sell the content of this libary
+// as yours, all rights reserved to Tomer Horowitz (@Tomergt45).
+//
+// Partially inspired by Google Material-Design.
+//
+// Requirements:
+// JQuery
+//
+// Libary contains:
+// - Predefined element templates.
+// - UI Special effects.
+// - Extention/Utility functions.
+// ~
