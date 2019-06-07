@@ -4,8 +4,6 @@ Addons
 
 ================================================================
 
-~
-
 The 'Addons' libary is an intellectual-property.
 
 you are not allowed to redistribute or sell the content of this libary
@@ -28,7 +26,3 @@ Libary contains:
 - UI Special effects.
 
 - Extention/Utility functions.
-
-~
-
-
