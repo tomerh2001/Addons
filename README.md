@@ -7,9 +7,7 @@
 // ~
 
 // The 'Addons' libary is an intellectual-property.
-
 // you are not allowed to redistribute or sell the content of this libary
-
 // as yours, all rights reserved to Tomer Horowitz (@Tomergt45).
 
 //
