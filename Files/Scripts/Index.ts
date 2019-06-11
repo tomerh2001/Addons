@@ -1,3 +1,5 @@
 function start() {
-    $.observe("[name]", e => console.log($(e).attr('name')))
+    $('.container-item').metaChange('test', function(ev) {
+        console.log(ev.metaChanges)
+    })
 }

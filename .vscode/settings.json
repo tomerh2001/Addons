@@ -1,4 +1,5 @@
 {
     "vscode.tsc.compiler.alertTSConfigChanges": "never",
-    "vscode.tsc.compiler.alertOnError": "never"
+    "vscode.tsc.compiler.alertOnError": "never",
+    "liveServer.settings.port": 5502
 }
