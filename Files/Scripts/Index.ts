@@ -1,3 +1,4 @@
 function start() {
-    $.observe("[name]", e => console.log($(e).attr('name')))
+    var star = $('<img></img>').attr('src', 'image-src')
+    console.log(star)
 }
