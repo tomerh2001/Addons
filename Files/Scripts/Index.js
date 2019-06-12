@@ -1,5 +1,6 @@
 function start() {
-    var star = $('<img></img>').attr('src', 'image-src');
-    console.log(star);
+    $('.container-item').metaChange('test', function (ev) {
+        console.log(ev.metaChanges);
+    });
 }
 //# sourceMappingURL=Index.js.map
