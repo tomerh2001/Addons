@@ -187,6 +187,104 @@ $(function () {
             return this.metaAttr(key, { [name]: value });
         }
     };
+    $.fn.animationEnd = function (...args) {
+        // Create local variables
+        var events = 'animationend webkitAnimationEnd oanimationend MSAnimationEnd transitionend webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd';
+        // Check if any arguments specified
+        if (args.length == 0) {
+            // Fire the 'animationEnd' event on every element in the set of 
+            // matched elements and return the original set
+            // of matched elements
+            return $(this).trigger(events);
+        }
+        else {
+            // Parse the received arguments
+            var fn = args[0];
+            // Bind the specified callback function and return the
+            // original set of matched elements
+            return $(this).on(events, fn);
+        }
+    };
+    $.fn.ripple = function (...args) {
+        // Create the default meta properties for the ripple effect
+        // and the default readonly meta
+        var defaultMeta = {
+            color: 'auto',
+            duration: 400,
+            startEvent: 'mousedown',
+            endEvent: 'mouseup',
+            opacity: .075,
+        };
+        var readonlyMeta = {
+            startFunction: startRipple,
+            endFunction: endRipple,
+        };
+        // Combine the specified meta properties with 
+        // the default and readonly meta properties
+        var meta = $.extend(defaultMeta, args[0], readonlyMeta);
+        // Create utility functions for the current event
+        function startRipple(ev) {
+            // Create the effect html element
+            var ripple = $.div('ripple');
+            // Get the meta info of the current target element
+            var meta = $(ev.currentTarget).meta('ripple');
+            // Create the CSS properties as local variables
+            var width = $(ev.currentTarget).outerWidth(true), height = $(ev.currentTarget).outerHeight(true);
+            // Get the target center
+            var centerX = width / 2, centerY = height / 2;
+            // Calculate the radius of the circumscribed circle of the target rectangle
+            var r1 = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) / 2;
+            // Calculate the desired circle radius using the radius of 
+            // the circumscribed cirlce and the offset of the inital circle
+            var radius = r1 + Math.sqrt(Math.pow((ev.offsetX - centerX), 2) + Math.pow((ev.offsetY - centerY), 2));
+            // Set the CSS of the ripple effect
+            ripple.css({
+                left: ev.offsetX - radius,
+                top: ev.offsetY - radius,
+                width: radius * 2,
+                height: radius * 2,
+                opacity: meta.opacity,
+                animationDuration: meta.duration / 1000 + 's',
+                animationTimingFunction: meta.durationFunction,
+                background: (meta.color == 'auto' ? $(ev.currentTarget).css('color') : meta.color)
+            });
+            // Bind events to the ripple effect
+            ripple.animationEnd(function (ev) {
+                // Check if a callback function is specified
+                if (meta.scaleEnd) {
+                    meta.scaleEnd(ev);
+                }
+            });
+            // Append the ripple effect to the current target element
+            ripple.appendTo(ev.currentTarget);
+            // Check if a callback function is specified
+            if (meta.start) {
+                meta.start(ev);
+            }
+        }
+        function endRipple(ev) {
+            // Get the ripple effect element
+            var ripple = $(ev.currentTarget).find('.ripple');
+            // Animate out the ripple effect
+            ripple.fadeOut(meta.duration, function () {
+                // Remove the ripple effect element
+                ripple.remove();
+                // Check if a callback function is specified
+                if (meta.end) {
+                    meta.end(ev);
+                }
+            });
+        }
+        // Bind effect events to the set of matched elements
+        $(this).on({
+            [meta.startEvent]: startRipple,
+            [meta.endEvent]: endRipple
+        });
+        // Set the meta info to the set of matched elements
+        $(this).attr('ripple', '').meta('ripple', meta);
+        // Return the original set of matched elements
+        return this;
+    };
     // JQueryStatic
     $.observe = function (...args) {
         // Parse arguments
@@ -208,9 +306,21 @@ $(function () {
         // Set observer callbacks
         $('html').data('observer-callbacks', callbacks);
     };
+    $.div = function (...args) {
+        // Parse the received attributes
+        var classes = args[0], attributes = args[1] ? args[1] : {};
+        // Create a div element with the specified classes
+        var div = $('<div></div>').addClass(classes).attr(attributes);
+        // Return the newly created DIV element
+        return div;
+    };
     // String
     String.prototype.title = function () {
         return this.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    };
+    // Math
+    Math.minmax = function (value, min, max) {
+        return Math.min(Math.max(value, min), max);
     };
 });
 // #endregion

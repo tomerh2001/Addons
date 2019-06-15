@@ -33,6 +33,9 @@ interface JQueryStatic {
     observe(fn: (mutation: MutationRecord, targets: Array<Element>) => any);
     /** Observes elements matching the selector for any mutations, firing the specified callback when observed*/
     observe(selector, fn: (mutation: MutationRecord, targets: Array<Element>) => any);
+
+    /** Creates a new div element with the specified classes and attributes */
+    div(classes?: string, attributes?: object): JQuery;
 }
 interface JQuery {
     /** 
@@ -102,10 +105,29 @@ interface JQuery {
      * @functionality Reference attributes are managed by the 'Addons' API, for more see '$(selector).meta()'.
      */
     metaAttr(key: string, name: string, value: any): JQuery
+
+    /**
+     * Fire the 'animationEnd' event on every element in the set of matched elements.
+     */
+    animationEnd(): JQuery;
+    /** 
+     * Append a function to execute when the 'animationEnd' event is fired.
+     */
+    animationEnd(handler: (eventObject: JQueryEventObject) => any): JQuery;
+
+    /**
+     * Bind a ripple effect to each element in the current set of matched elements.
+     * @Addons This effect or a template is managed by the 'Addons' API.
+     */
+    ripple(meta?: rippleMeta): JQuery;
 }
 interface String {
     /** Capitalize the first letter of every word in the current string. */
     title(): string;
+}
+interface Math {
+    /** Clamps the specified value between the specified minimum value and the specified maximum value */
+    minmax(value: number, min: number, max: number)
 }
 // #endregion
 
@@ -301,6 +323,122 @@ $(function() {
             return this.metaAttr(key, { [name]: value })
         }
     }
+    $.fn.animationEnd = function(...args) {
+        // Create local variables
+        var events = 'animationend webkitAnimationEnd oanimationend MSAnimationEnd transitionend webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd'
+
+        // Check if any arguments specified
+        if (args.length == 0) {
+            // Fire the 'animationEnd' event on every element in the set of 
+            // matched elements and return the original set
+            // of matched elements
+            return $(this).trigger(events)
+        }
+        else {
+            // Parse the received arguments
+            var fn = args[0]
+
+            // Bind the specified callback function and return the
+            // original set of matched elements
+            return $(this).on(events, fn)
+        }
+    }
+    $.fn.ripple = function(...args) {
+        // Create the default meta properties for the ripple effect
+        // and the default readonly meta
+        var defaultMeta: rippleMeta = {
+            color: 'auto',
+            duration: 400,
+            startEvent: 'mousedown',
+            endEvent: 'mouseup',
+            opacity: .075,
+        }
+        var readonlyMeta: rippleMeta = {
+            startFunction: startRipple,
+            endFunction: endRipple,
+        }
+
+        // Combine the specified meta properties with 
+        // the default and readonly meta properties
+        var meta = $.extend(defaultMeta, args[0], readonlyMeta)
+            
+        // Create utility functions for the current event
+        function startRipple(ev: JQueryEventObject) {
+            // Create the effect html element
+            var ripple = $.div('ripple')
+            
+            // Get the meta info of the current target element
+            var meta: rippleMeta = $(ev.currentTarget).meta('ripple')
+            
+            // Create the CSS properties as local variables
+            var width = $(ev.currentTarget).outerWidth(true), height = $(ev.currentTarget).outerHeight(true)
+
+            // Get the target center
+            var centerX = width / 2, centerY = height / 2
+
+            // Calculate the radius of the circumscribed circle of the target rectangle
+            var r1 = Math.sqrt(width ** 2 + height ** 2) / 2
+
+            // Calculate the desired circle radius using the radius of 
+            // the circumscribed cirlce and the offset of the inital circle
+            var radius = r1 + Math.sqrt((ev.offsetX - centerX) ** 2 + (ev.offsetY - centerY) ** 2)
+
+            // Set the CSS of the ripple effect
+            ripple.css({
+                left: ev.offsetX - radius,
+                top: ev.offsetY - radius,
+                width: radius * 2,
+                height: radius * 2,
+                opacity: meta.opacity,
+                animationDuration: meta.duration / 1000 + 's',
+                animationTimingFunction: meta.durationFunction,
+                background: (meta.color == 'auto' ? $(ev.currentTarget).css('color') : meta.color)
+            })
+
+            // Bind events to the ripple effect
+            ripple.animationEnd(function(ev) {
+                // Check if a callback function is specified
+                if (meta.scaleEnd) {
+                    meta.scaleEnd(ev)
+                }
+            })
+            
+            // Append the ripple effect to the current target element
+            ripple.appendTo(ev.currentTarget)
+            
+            // Check if a callback function is specified
+            if (meta.start) {
+                meta.start(ev)
+            }
+        }
+        function endRipple(ev: JQueryEventObject) {
+            // Get the ripple effect element
+            var ripple = $(ev.currentTarget).find('.ripple')
+
+            // Animate out the ripple effect
+            ripple.fadeOut(meta.duration, function() {
+                // Remove the ripple effect element
+                ripple.remove()
+
+                // Check if a callback function is specified
+                if (meta.end) {
+                    meta.end(ev)
+                }
+            })
+        }
+
+        // Bind effect events to the set of matched elements
+        $(this).on({
+            [meta.startEvent]: startRipple,
+            [meta.endEvent]: endRipple
+        })
+
+        // Set the meta info to the set of matched elements
+        $(this).attr('ripple', '').meta('ripple', meta)
+
+        // Return the original set of matched elements
+        return this
+    }
 
     // JQueryStatic
     $.observe = function(...args) {
@@ -326,32 +464,67 @@ $(function() {
         // Set observer callbacks
         $('html').data('observer-callbacks', callbacks)
     }
+    $.div = function(...args) {
+        // Parse the received attributes
+        var classes = args[0], attributes = args[1] ? args[1] : {}
+
+        // Create a div element with the specified classes
+        var div = $('<div></div>').addClass(classes).attr(attributes)
+
+        // Return the newly created DIV element
+        return div
+    }
 
     // String
     String.prototype.title = function() {
         return this.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
     }
+
+    // Math
+    Math.minmax = function(value, min, max) {
+        return Math.min(Math.max(value, min), max)
+    }
 })
 // #endregion
 
 // #region Types
-/** The base meta properties for effects */
+/** The base meta properties for effects. */
 type effectMeta = {
-    /** Event callback, usually fired when the entire event has started */
+    /** Function to fire when the entire event has started */
     start?: Function;
+    
+    /** The events that will fire the effect */
+    startEvent?: string;
 
-    /** Event callback, usually fired when the entire event has ended */
+    /** Readonly, calling this function will fire the effect */
+    readonly startFunction?: Function;
+
+    /** Function to fire when the entire event has ended */
     end?: Function;
+
+    /** The events that will terminate the effect */
+    endEvent?: string;
+
+    /** Readonly, calling this function will terminate the effect */
+    readonly endFunction?: Function;
 
     /** The color of the event */
     color?: string | number;
 
-    /** The duration of the event */
+    /** The duration of the event in milliseconds */
     duration?: number;
 
     /** The duration function of the event */
     durationFunction?;
+}
 
+/** The ripple effect meta properties. */
+type rippleMeta = effectMeta & {
+    /** Event callback, fired when the ripple effect finished scaling */
+    scaleEnd?: Function;
+
+    /** The opacity of the effect */
+    opacity?: number | string;
 }
 // #endregion
 

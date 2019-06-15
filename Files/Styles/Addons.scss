@@ -11,3 +11,25 @@
     font-family: Arimo-Regular;
     src: url('../Font-Awesome/Arimo-Regular.ttf');
 }
+
+// Ripple
+[ripple] {
+    overflow: hidden;
+    position: relative;
+
+    .ripple {
+        position: absolute;
+        opacity: .1;
+        border-radius: 50%;
+        user-select: none;
+        pointer-events: none;
+        transform: scale(1, 1);
+        animation-name: scaleIn;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(.2, .2);
+    }
+}

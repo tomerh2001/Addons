@@ -1,6 +1,6 @@
 function start() {
-    $('.container-item').metaChange('test', function (ev) {
-        console.log(ev.metaChanges);
+    $('.container-item').ripple({
+        color: 'red'
     });
 }
 //# sourceMappingURL=Index.js.map

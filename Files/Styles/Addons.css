@@ -10,4 +10,38 @@
   font-family: Arimo-Regular;
   src: url("../Font-Awesome/Arimo-Regular.ttf");
 }
+
+[ripple] {
+  overflow: hidden;
+  position: relative;
+}
+
+[ripple] .ripple {
+  position: absolute;
+  opacity: .1;
+  border-radius: 50%;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  pointer-events: none;
+  -webkit-transform: scale(1, 1);
+          transform: scale(1, 1);
+  -webkit-animation-name: scaleIn;
+          animation-name: scaleIn;
+}
+
+@-webkit-keyframes scaleIn {
+  from {
+    -webkit-transform: scale(0.2, 0.2);
+            transform: scale(0.2, 0.2);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    -webkit-transform: scale(0.2, 0.2);
+            transform: scale(0.2, 0.2);
+  }
+}
 /*# sourceMappingURL=Addons.css.map */
