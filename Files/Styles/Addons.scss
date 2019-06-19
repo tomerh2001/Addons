@@ -26,8 +26,33 @@
         transform: scale(1, 1);
         animation-name: scaleIn;
     }
+    
+    .ripple-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        animation-name: backgroundIn;
+
+        &.end {
+            animation-name: backgroundOut;
+        }
+    }
 }
 
+// Keyframes
+@keyframes backgroundIn {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes backgroundOut {
+    to {
+        opacity: 0;
+    }
+}
 @keyframes scaleIn {
     from {
         transform: scale(.2, .2);

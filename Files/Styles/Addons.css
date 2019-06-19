@@ -31,6 +31,46 @@
           animation-name: scaleIn;
 }
 
+[ripple] .ripple-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  -webkit-animation-name: backgroundIn;
+          animation-name: backgroundIn;
+}
+
+[ripple] .ripple-background.end {
+  -webkit-animation-name: backgroundOut;
+          animation-name: backgroundOut;
+}
+
+@-webkit-keyframes backgroundIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes backgroundIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes backgroundOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes backgroundOut {
+  to {
+    opacity: 0;
+  }
+}
+
 @-webkit-keyframes scaleIn {
   from {
     -webkit-transform: scale(0.2, 0.2);

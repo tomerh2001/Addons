@@ -349,9 +349,14 @@ $(function() {
         var defaultMeta: rippleMeta = {
             color: 'auto',
             duration: 400,
-            startEvent: 'mousedown',
-            endEvent: 'mouseup',
-            opacity: .075,
+            startEvent: 'mousedown focus',
+            endEvent: 'mouseup focusout',
+            background: true,
+            startBackground: 'mouseenter focus',
+            endBackground: 'mouseleave focusout',
+            opacityBackground: .05,
+            durationBackground: 0,
+            opacity: .15,
         }
         var readonlyMeta: rippleMeta = {
             startFunction: startRipple,
@@ -398,8 +403,8 @@ $(function() {
             // Bind events to the ripple effect
             ripple.animationEnd(function(ev) {
                 // Check if a callback function is specified
-                if (meta.scaleEnd) {
-                    meta.scaleEnd(ev)
+                if (meta.endScale) {
+                    meta.endScale(ev)
                 }
             })
             
@@ -426,11 +431,51 @@ $(function() {
                 }
             })
         }
+        function startBackground(ev: JQueryEventObject) {
+            // Get the meta info of the current target element
+            var meta: rippleMeta = $(ev.currentTarget).meta('ripple')
+
+            // Check if background effect is enabled
+            if (meta.background) {
+                // Parse the background color value
+                // check if a color is specified or should be obtained 
+                // from the element
+                if (typeof meta.background == 'boolean' || meta.background == 'auto') {
+                    // Obtain the background color from the element
+                    var background = $(ev.currentTarget).css('color')
+                }
+                else {
+                    // Get the specified background color
+                    var background = meta.background
+                }
+
+                // Create the background element and append it into the 
+                // target element
+                $.div('ripple-background').css({
+                    background: background,
+                    opacity: meta.opacityBackground,
+                    animationDuration: meta.durationBackground / 1000 + 's'
+                }).appendTo(ev.currentTarget)
+            }
+        }
+        function endBackground(ev: JQueryEventObject) {
+            // Get the background effect element
+            var backgroundElement = $(ev.currentTarget).children('.ripple-background')
+            
+            // Add the 'end' class to the background effect element
+            // which is an indication to start the end animation
+            backgroundElement.addClass('end').animationEnd(function(ev) {
+                // Remove the background effect element
+                $(this).remove()
+            })
+        }
 
         // Bind effect events to the set of matched elements
         $(this).on({
             [meta.startEvent]: startRipple,
-            [meta.endEvent]: endRipple
+            [meta.endEvent]: endRipple,
+            [meta.startBackground]: startBackground,
+            [meta.endBackground]: endBackground,
         })
 
         // Set the meta info to the set of matched elements
@@ -488,8 +533,8 @@ $(function() {
 // #endregion
 
 // #region Types
-/** The base meta properties for effects. */
-type effectMeta = {
+/** The ripple effect meta properties. */
+type rippleMeta = {
     /** Function to fire when the entire event has started */
     start?: Function;
     
@@ -509,22 +554,34 @@ type effectMeta = {
     readonly endFunction?: Function;
 
     /** The color of the event */
-    color?: string | number;
+    color?: number | string;
 
     /** The duration of the event in milliseconds */
     duration?: number;
 
     /** The duration function of the event */
     durationFunction?;
-}
 
-/** The ripple effect meta properties. */
-type rippleMeta = effectMeta & {
-    /** Event callback, fired when the ripple effect finished scaling */
-    scaleEnd?: Function;
+    /** Function to fire when the effect finished scaling */
+    endScale?: Function;
 
     /** The opacity of the effect */
     opacity?: number | string;
+
+    /** Background effect, optionaly can specify the color */
+    background?: boolean | string;
+
+    /** The events that will fire the background effect */
+    startBackground?: string;
+
+    /** The events that will terminate the background effect */
+    endBackground?: string;
+
+    /** The opacity of the background effect */
+    opacityBackground?: number | string;
+
+    /** The duration of the background effect in milliseconds */
+    durationBackground?: number;
 }
 // #endregion
 

@@ -211,9 +211,14 @@ $(function () {
         var defaultMeta = {
             color: 'auto',
             duration: 400,
-            startEvent: 'mousedown',
-            endEvent: 'mouseup',
-            opacity: .075,
+            startEvent: 'mousedown focus',
+            endEvent: 'mouseup focusout',
+            background: true,
+            startBackground: 'mouseenter focus',
+            endBackground: 'mouseleave focusout',
+            opacityBackground: .05,
+            durationBackground: 0,
+            opacity: .15,
         };
         var readonlyMeta = {
             startFunction: startRipple,
@@ -251,8 +256,8 @@ $(function () {
             // Bind events to the ripple effect
             ripple.animationEnd(function (ev) {
                 // Check if a callback function is specified
-                if (meta.scaleEnd) {
-                    meta.scaleEnd(ev);
+                if (meta.endScale) {
+                    meta.endScale(ev);
                 }
             });
             // Append the ripple effect to the current target element
@@ -275,10 +280,47 @@ $(function () {
                 }
             });
         }
+        function startBackground(ev) {
+            // Get the meta info of the current target element
+            var meta = $(ev.currentTarget).meta('ripple');
+            // Check if background effect is enabled
+            if (meta.background) {
+                // Parse the background color value
+                // check if a color is specified or should be obtained 
+                // from the element
+                if (typeof meta.background == 'boolean' || meta.background == 'auto') {
+                    // Obtain the background color from the element
+                    var background = $(ev.currentTarget).css('color');
+                }
+                else {
+                    // Get the specified background color
+                    var background = meta.background;
+                }
+                // Create the background element and append it into the 
+                // target element
+                $.div('ripple-background').css({
+                    background: background,
+                    opacity: meta.opacityBackground,
+                    animationDuration: meta.durationBackground / 1000 + 's'
+                }).appendTo(ev.currentTarget);
+            }
+        }
+        function endBackground(ev) {
+            // Get the background effect element
+            var backgroundElement = $(ev.currentTarget).children('.ripple-background');
+            // Add the 'end' class to the background effect element
+            // which is an indication to start the end animation
+            backgroundElement.addClass('end').animationEnd(function (ev) {
+                // Remove the background effect element
+                $(this).remove();
+            });
+        }
         // Bind effect events to the set of matched elements
         $(this).on({
             [meta.startEvent]: startRipple,
-            [meta.endEvent]: endRipple
+            [meta.endEvent]: endRipple,
+            [meta.startBackground]: startBackground,
+            [meta.endBackground]: endBackground,
         });
         // Set the meta info to the set of matched elements
         $(this).attr('ripple', '').meta('ripple', meta);

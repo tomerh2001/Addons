@@ -1,6 +1,4 @@
 function start() {
-    $('.container-item').ripple({
-        color: 'red'
-    });
+    $('.test').ripple({});
 }
 //# sourceMappingURL=Index.js.map
