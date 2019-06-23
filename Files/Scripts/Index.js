@@ -1,4 +1,4 @@
 function start() {
-    $('.test').ripple({});
+    $('.test').ripple();
 }
 //# sourceMappingURL=Index.js.map

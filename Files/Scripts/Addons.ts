@@ -117,9 +117,15 @@ interface JQuery {
 
     /**
      * Bind a ripple effect to each element in the current set of matched elements.
-     * @Addons This effect or a template is managed by the 'Addons' API.
+     * @Addons This effect or template is managed by the 'Addons' API.
      */
     ripple(meta?: rippleMeta): JQuery;
+
+    /**
+     * Sets a shadow for all elements in the set of matched elements.
+     * @param value Can be either a normal CSS value of 'box-shadow' or an integer from 1 to 24 representing dp (see: Google's material design)
+     */
+    shadow(value: string | number);
 }
 interface String {
     /** Capitalize the first letter of every word in the current string. */
@@ -480,6 +486,29 @@ $(function() {
 
         // Set the meta info to the set of matched elements
         $(this).attr('ripple', '').meta('ripple', meta)
+
+        // Return the original set of matched elements
+        return this
+    }
+    $.fn.shadow = function(...args) {
+        // Parse received arguments
+        if (typeof args[0] == 'string') {
+            // Store value in a local variable
+            var value = args[0]
+
+            // Remove the 'shadow' attribute
+            this.removeAttr('shadow')
+
+            // Set the 'box-shadow' CSS value
+            this.css('box-shadow', value)
+        }
+        else if (typeof args[0] == 'number') {
+            // Store value in a local variable
+            var value = args[0]
+
+            // Set the 'shadow' attribute
+            this.attr('shadow', value)
+        }
 
         // Return the original set of matched elements
         return this

@@ -1,5 +1,3 @@
 function start() {
-    $('.test').ripple({
-        
-    })
+    $('.test').ripple()
 }

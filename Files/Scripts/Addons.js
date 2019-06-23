@@ -327,6 +327,25 @@ $(function () {
         // Return the original set of matched elements
         return this;
     };
+    $.fn.shadow = function (...args) {
+        // Parse received arguments
+        if (typeof args[0] == 'string') {
+            // Store value in a local variable
+            var value = args[0];
+            // Remove the 'shadow' attribute
+            this.removeAttr('shadow');
+            // Set the 'box-shadow' CSS value
+            this.css('box-shadow', value);
+        }
+        else if (typeof args[0] == 'number') {
+            // Store value in a local variable
+            var value = args[0];
+            // Set the 'shadow' attribute
+            this.attr('shadow', value);
+        }
+        // Return the original set of matched elements
+        return this;
+    };
     // JQueryStatic
     $.observe = function (...args) {
         // Parse arguments
